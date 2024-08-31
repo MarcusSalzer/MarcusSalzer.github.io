@@ -1,0 +1,15 @@
+
+h1{
+    text-align: center;
+}
+
+body{
+    color: wheat;
+    background-color: black;
+}
+
+nav {
+    border-bottom: solid;
+    border-top: solid;
+    border-color: rgb(173, 158, 129);
+}
