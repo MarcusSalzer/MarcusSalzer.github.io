@@ -1,0 +1,13 @@
+<div>Hello world</div>
+
+<section id = "main"   class="container" >
+   <p style="
+        color: red;" >
+    This is fine
+   </p>
+   <img src = "cat.jpg" alt=" a cat " />
+</section>
+
+<em
+    >this is weird</em
+>
