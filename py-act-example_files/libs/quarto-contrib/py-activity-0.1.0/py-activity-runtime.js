@@ -85,7 +85,7 @@ class c extends Error {
 }
 class p {
   constructor(t) {
-    this.system_prompt = t, console.log("created ai provider with system prompt:", t);
+    this.system_prompt = t;
   }
   /**
    */
@@ -172,9 +172,9 @@ Here the learning goals are ${t?.join(", ")}` : ""
     return i.choices[0].message.content;
   }
 }
-class b {
+class g {
   constructor(t) {
-    this.raw = t, console.log("template:", t);
+    this.raw = t;
   }
   render(t) {
     const e = /* @__PURE__ */ new Set(), s = this.raw.replace(/{{\s*(\w+)\s*}}/g, (o, n) => {
@@ -188,7 +188,7 @@ class b {
     return s;
   }
 }
-class g {
+class b {
   constructor(t) {
     this.root = t, this.question = this.captureQuestion(), this.toolbar = this.ensureToolbar(), this.submitBtn = this.createButton("Submit"), this.feedbackBtn = this.createButton("Feedback"), this.debugBtn = this.createButton("(debug)"), this.enableFdbkBtn(!1), this.toolbar.append(this.submitBtn, this.feedbackBtn, this.debugBtn);
   }
@@ -199,7 +199,7 @@ class g {
   debugBtn;
   // Created when needed
   feedbackEl;
-  debugEl;
+  debugEl = null;
   /* ---------------- hydration ---------------- */
   captureQuestion() {
     const t = this.root.querySelector("p");
@@ -242,20 +242,20 @@ class g {
     this.root.classList.toggle("correct", t), this.root.classList.toggle("incorrect", !t), this.enableFdbkBtn(!0);
   }
   showFeedback(t) {
-    this.feedbackEl || (console.log("create fdbk el"), this.feedbackEl = document.createElement("div"), this.feedbackEl.className = "activity-feedback", this.toolbar.after(this.feedbackEl)), this.feedbackEl.textContent = t, this.feedbackEl.hidden = !1, this.enableFdbkBtn(!1);
+    this.feedbackEl || (this.feedbackEl = document.createElement("div"), this.feedbackEl.className = "activity-feedback", this.toolbar.after(this.feedbackEl)), this.feedbackEl.textContent = t, this.feedbackEl.hidden = !1, this.enableFdbkBtn(!1);
   }
   showFeedbackLoading() {
     this.feedbackEl || (this.feedbackEl = document.createElement("div"), this.feedbackEl.className = "activity-feedback loading", this.toolbar.after(this.feedbackEl)), this.feedbackEl.textContent = "Thinking…", this.feedbackEl.hidden = !1, this.enableFdbkBtn(!1);
   }
   /* ---------------- Debug Help ---------------- */
-  showDebug(t) {
-    this.debugEl || (this.debugEl = document.createElement("pre"), this.debugEl.className = "activity-debug-info", this.toolbar.after(this.debugEl)), this.debugEl.textContent = JSON.stringify(t, void 0, 2);
+  toggleDebug(t) {
+    this.debugEl ? (this.debugEl.remove(), this.debugEl = null) : (this.debugEl = document.createElement("pre"), this.debugEl.className = "activity-debug-info", this.toolbar.after(this.debugEl), this.debugEl.textContent = JSON.stringify(t, void 0, 2));
   }
 }
 class f {
   constructor(t, e, s, o, n) {
-    this.meta = e, this.ai = s, this.settings = o, this.ui = new g(t), this.template = new b(n), this.ui.submitBtn.addEventListener("click", () => this.submit()), this.ui.feedbackBtn.addEventListener("click", () => this.getFdbk()), this.ui.debugBtn.addEventListener("click", () => {
-      this.ui.showDebug({ meta: e, template: n });
+    this.meta = e, this.ai = s, this.settings = o, this.ui = new b(t), this.template = new g(n), this.ui.submitBtn.addEventListener("click", () => this.submit()), this.ui.feedbackBtn.addEventListener("click", () => this.getFdbk()), this.ui.debugBtn.addEventListener("click", () => {
+      this.ui.toggleDebug({ meta: e, template: n });
     });
   }
   ui;
