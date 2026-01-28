@@ -1,0 +1,4 @@
+{
+  "model": { "embedding_dim": 16, "hidden_dim": 3.14 },
+  "training": { "epochs": 10.5, "lr": 0.004 }
+}
