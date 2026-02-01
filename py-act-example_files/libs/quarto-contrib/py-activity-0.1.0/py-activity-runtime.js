@@ -45,6 +45,190 @@ class m {
     s && e !== void 0 && (s.value = e);
   }
 }
+class p {
+  constructor(t) {
+    this.raw = t;
+  }
+  render(t) {
+    const e = /* @__PURE__ */ new Set();
+    return this.raw.replace(/{{\s*(\w+)\s*}}/g, (n, o) => {
+      if (!(o in t))
+        throw new Error(`Missing fill value for "${o}"`);
+      return e.add(o), t[o];
+    });
+  }
+}
+class g {
+  constructor(t) {
+    this.root = t, this.question = this.captureQuestion(), this.toolbar = this.ensureToolbar(), this.submitBtn = this.createButton("Submit"), this.feedbackBtn = this.createButton("Feedback"), this.debugBtn = this.createButton("(debug)"), this.enableFdbkBtn(!1), this.toolbar.append(this.submitBtn, this.feedbackBtn, this.debugBtn);
+  }
+  question;
+  toolbar;
+  submitBtn;
+  feedbackBtn;
+  debugBtn;
+  // Created when needed
+  feedbackEl;
+  debugEl = null;
+  /* ---------------- hydration ---------------- */
+  captureQuestion() {
+    const t = this.root.querySelector("ul");
+    if (!t) throw new Error("Choice activity missing <ul>");
+    const e = [];
+    return t.querySelectorAll("li").forEach((s, n) => {
+      const o = s.querySelector(
+        "input[type=checkbox]"
+      );
+      if (!o) throw new Error("Option missing checkbox");
+      e.push({
+        index: n,
+        input: o
+      });
+    }), { options: e };
+  }
+  ensureToolbar() {
+    let t = this.root.querySelector(".activity-toolbar");
+    return t || (t = document.createElement("div"), t.className = "activity-toolbar", this.root.appendChild(t)), t;
+  }
+  createButton(t) {
+    const e = document.createElement("button");
+    return e.type = "button", e.textContent = t, e;
+  }
+  /* ---------------- interaction helpers ---------------- */
+  enableFdbkBtn(t) {
+    this.feedbackBtn.disabled = !t;
+  }
+  getAnswer() {
+    return this.question.options.filter((t) => t.input.checked).map((t) => t.index);
+  }
+  disable() {
+    this.question.options.forEach((t) => t.input.disabled = !0), this.submitBtn.disabled = !0;
+  }
+  showResult(t) {
+    this.root.classList.toggle("correct", t), this.root.classList.toggle("incorrect", !t), this.enableFdbkBtn(!0);
+  }
+  showFeedback(t) {
+    this.feedbackEl || (this.feedbackEl = document.createElement("div"), this.feedbackEl.className = "activity-feedback", this.toolbar.after(this.feedbackEl)), this.feedbackEl.textContent = t, this.feedbackEl.hidden = !1, this.enableFdbkBtn(!1);
+  }
+  showFeedbackLoading() {
+    this.feedbackEl || (this.feedbackEl = document.createElement("div"), this.feedbackEl.className = "activity-feedback loading", this.toolbar.after(this.feedbackEl)), this.feedbackEl.textContent = "Thinking…", this.feedbackEl.hidden = !1, this.enableFdbkBtn(!1);
+  }
+  /* ---------------- Debug Help ---------------- */
+  toggleDebug(t) {
+    this.debugEl ? (this.debugEl.remove(), this.debugEl = null) : (this.debugEl = document.createElement("pre"), this.debugEl.className = "activity-debug-info", this.toolbar.after(this.debugEl), this.debugEl.textContent = JSON.stringify(t, void 0, 2));
+  }
+}
+class b {
+  constructor(t, e, s, n, o) {
+    this.meta = e, this.ai = s, this.settings = n, this.ui = new g(t), this.template = new p(o), this.ui.submitBtn.addEventListener("click", () => this.submit()), this.ui.feedbackBtn.addEventListener("click", () => this.getFdbk()), this.ui.debugBtn.addEventListener("click", () => {
+      this.ui.toggleDebug({ meta: e, template: o });
+    });
+  }
+  ui;
+  template;
+  async submit() {
+    const t = this.ui.getAnswer(), e = t.length === this.meta.correct.length && t.every((s) => this.meta.correct.includes(s));
+    e && this.ui.disable(), this.ui.showResult(e);
+  }
+  idsToOptMd(t) {
+    return t.map((e) => this.meta.options_md[e]).join(", ");
+  }
+  async getFdbk() {
+    const t = this.ui.getAnswer(), e = this.meta.correct, s = this.template.render({
+      QUESTION: this.meta.question_md,
+      OPTIONS: this.meta.options_md.join(", "),
+      CORRECT: this.idsToOptMd(e),
+      ANSWER: this.idsToOptMd(t)
+    }), n = this.settings.load();
+    if (!n) throw new Error("No ai credentials stored");
+    console.log("sending to ai:", s), this.ui.showFeedbackLoading();
+    const o = await this.ai.generate(
+      this.meta.learningGoals,
+      s,
+      n
+    );
+    this.ui.showFeedback(o.summary);
+  }
+}
+const l = {
+  // code: CodeActivityController,
+  choice: b
+  //   cloze: ClozeActivityController,
+};
+function d(r) {
+  return r !== null && r in l;
+}
+function f(r, t, e, s, n) {
+  if (!d(t.type))
+    throw new Error(`unsupported activity type: ${t.type}`);
+  const o = l[t.type];
+  return new o(r, t, e, s, n);
+}
+function y() {
+  const r = document.querySelector("#global-options");
+  if (!r)
+    throw new Error("Could not find global-options element");
+  const t = JSON.parse(r.textContent);
+  if (!t.prompts)
+    throw new Error("prompts missing from global options");
+  return t;
+}
+function w(r) {
+  const t = r.querySelector("script.activity-meta");
+  if (!t) throw new Error("Missing script.activity-meta");
+  const e = JSON.parse(t.textContent), s = e.type;
+  if (!d(s))
+    throw new Error("unsupported activity type: " + s);
+  return {
+    id: Number(e.id),
+    type: s,
+    prompt_key: e?.prompt_key ?? s,
+    correct: e.correct,
+    question_md: e.question_md,
+    options_md: e.options_md
+  };
+}
+function E(r, t, e, s) {
+  const n = [];
+  for (const o of r)
+    try {
+      const i = w(o), a = s[i.prompt_key];
+      if (!a)
+        throw new Error("prompt template not found:" + i.prompt_key);
+      n.push({
+        meta: i,
+        controller: f(o, i, t, e, a)
+      });
+    } catch (i) {
+      console.error(i), o.classList.add("debug-error");
+    }
+  return {
+    activitities: n
+  };
+}
+const k = ({ activities: r, rawPrompts: t }) => {
+  const e = r.length;
+  console.log("making debug widget for: " + e);
+  const s = document.createElement("div");
+  s.id = "activity-debug";
+  const n = document.createElement("div");
+  n.textContent = `🐞 ${e} activit${e === 1 ? "y" : "ies"}`, n.addEventListener("click", () => {
+    r.length ? alert(
+      `Activities:
+` + r.map((a) => `${a.id}: ${a.type}`).join(`
+`)
+    ) : alert("No activities detected");
+  });
+  const o = document.createElement("div"), i = Object.keys(t).length;
+  return o.textContent = `${i} prompts`, o.addEventListener("click", () => {
+    alert(
+      i ? `Prompts:
+` + Object.keys(t).map((a) => `${a}: ${t[a]}`).join(`
+
+`) : "No prompts detected"
+    );
+  }), s.replaceChildren(n, o), s;
+};
 class c extends Error {
   constructor(t, e, s) {
     super(t), this.cause = e, this.kind = s, this.name = "AIInteractionError";
@@ -83,7 +267,7 @@ class c extends Error {
     }
   }
 }
-class p {
+class v {
   constructor(t) {
     this.system_prompt = t;
   }
@@ -91,7 +275,7 @@ class p {
    */
   async generate(t, e, s) {
     s.model || console.warn("TODO default model choice?");
-    const o = `${s.baseUrl}/chat/completions`, n = {
+    const n = `${s.baseUrl}/chat/completions`, o = {
       messages: [
         {
           role: "system",
@@ -104,13 +288,13 @@ Here the learning goals are ${t?.join(", ")}` : ""
         }
       ],
       model: s.model ?? "TODO default model"
-    }, a = (await (await fetch(o, {
+    }, a = (await (await fetch(n, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${s.apiKey}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(n)
+      body: JSON.stringify(o)
     })).json()).choices[0].message.content;
     if (typeof a != "string")
       throw new Error("weird message content: " + typeof a);
@@ -134,8 +318,8 @@ Here the learning goals are ${t?.join(", ")}` : ""
           "Content-Type": "application/json"
         }
       });
-    } catch (o) {
-      throw c.classifyNetworkError(o, t.baseUrl);
+    } catch (n) {
+      throw c.classifyNetworkError(n, t.baseUrl);
     }
     if (!s.ok)
       throw c.classifyHttpError(s);
@@ -147,7 +331,7 @@ Here the learning goals are ${t?.join(", ")}` : ""
   async ping(t) {
     const e = `${t.baseUrl}/chat/completions`, s = t.model;
     if (!s) throw new Error("Choose a model!");
-    const o = {
+    const n = {
       messages: [
         {
           role: "system",
@@ -159,276 +343,80 @@ Here the learning goals are ${t?.join(", ")}` : ""
         }
       ],
       model: s
-    }, n = await fetch(e, {
+    }, o = await fetch(e, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${t.apiKey}`
       },
-      body: JSON.stringify(o)
-    }), i = await n.json();
-    if (!n.ok)
+      body: JSON.stringify(n)
+    }), i = await o.json();
+    if (!o.ok)
       throw new Error("message" in i ? i.message : JSON.stringify(i));
     return i.choices[0].message.content;
   }
 }
-class g {
-  constructor(t) {
-    this.raw = t;
-  }
-  render(t) {
-    const e = /* @__PURE__ */ new Set(), s = this.raw.replace(/{{\s*(\w+)\s*}}/g, (o, n) => {
-      if (!(n in t))
-        throw new Error(`Missing fill value for "${n}"`);
-      return e.add(n), t[n];
-    });
-    for (const o of Object.keys(t))
-      if (!e.has(o))
-        throw new Error(`Unused fill value "${o}"`);
-    return s;
-  }
-}
-class b {
-  constructor(t) {
-    this.root = t, this.question = this.captureQuestion(), this.toolbar = this.ensureToolbar(), this.submitBtn = this.createButton("Submit"), this.feedbackBtn = this.createButton("Feedback"), this.debugBtn = this.createButton("(debug)"), this.enableFdbkBtn(!1), this.toolbar.append(this.submitBtn, this.feedbackBtn, this.debugBtn);
-  }
-  question;
-  toolbar;
-  submitBtn;
-  feedbackBtn;
-  debugBtn;
-  // Created when needed
-  feedbackEl;
-  debugEl = null;
-  /* ---------------- hydration ---------------- */
-  captureQuestion() {
-    const t = this.root.querySelector("p");
-    if (!t) throw new Error("Choice activity missing <p> question");
-    const e = this.root.querySelector("ul");
-    if (!e) throw new Error("Choice activity missing <ul>");
-    const s = [];
-    return e.querySelectorAll("li").forEach((o, n) => {
-      const i = o.querySelector(
-        "input[type=checkbox]"
-      );
-      if (!i) throw new Error("Option missing checkbox");
-      const a = o.textContent?.trim() ?? "", l = document.createElement("label");
-      l.append(i.cloneNode(!0), " ", a), o.replaceChildren(l), s.push({
-        index: n,
-        text: a,
-        input: l.querySelector("input")
-      });
-    }), { text: t.innerHTML, options: s };
-  }
-  ensureToolbar() {
-    let t = this.root.querySelector(".activity-toolbar");
-    return t || (t = document.createElement("div"), t.className = "activity-toolbar", this.root.appendChild(t)), t;
-  }
-  createButton(t) {
-    const e = document.createElement("button");
-    return e.type = "button", e.textContent = t, e;
-  }
-  /* ---------------- interaction helpers ---------------- */
-  enableFdbkBtn(t) {
-    this.feedbackBtn.disabled = !t;
-  }
-  getAnswer() {
-    return this.question.options.filter((t) => t.input.checked).map((t) => t.index);
-  }
-  disable() {
-    this.question.options.forEach((t) => t.input.disabled = !0), this.submitBtn.disabled = !0;
-  }
-  showResult(t) {
-    this.root.classList.toggle("correct", t), this.root.classList.toggle("incorrect", !t), this.enableFdbkBtn(!0);
-  }
-  showFeedback(t) {
-    this.feedbackEl || (this.feedbackEl = document.createElement("div"), this.feedbackEl.className = "activity-feedback", this.toolbar.after(this.feedbackEl)), this.feedbackEl.textContent = t, this.feedbackEl.hidden = !1, this.enableFdbkBtn(!1);
-  }
-  showFeedbackLoading() {
-    this.feedbackEl || (this.feedbackEl = document.createElement("div"), this.feedbackEl.className = "activity-feedback loading", this.toolbar.after(this.feedbackEl)), this.feedbackEl.textContent = "Thinking…", this.feedbackEl.hidden = !1, this.enableFdbkBtn(!1);
-  }
-  /* ---------------- Debug Help ---------------- */
-  toggleDebug(t) {
-    this.debugEl ? (this.debugEl.remove(), this.debugEl = null) : (this.debugEl = document.createElement("pre"), this.debugEl.className = "activity-debug-info", this.toolbar.after(this.debugEl), this.debugEl.textContent = JSON.stringify(t, void 0, 2));
-  }
-}
-class f {
-  constructor(t, e, s, o, n) {
-    this.meta = e, this.ai = s, this.settings = o, this.ui = new b(t), this.template = new g(n), this.ui.submitBtn.addEventListener("click", () => this.submit()), this.ui.feedbackBtn.addEventListener("click", () => this.getFdbk()), this.ui.debugBtn.addEventListener("click", () => {
-      this.ui.toggleDebug({ meta: e, template: n });
-    });
-  }
-  ui;
-  template;
-  async submit() {
-    const t = this.ui.getAnswer(), e = t.length === this.meta.correct.length && t.every((s) => this.meta.correct.includes(s));
-    e && this.ui.disable(), this.ui.showResult(e);
-  }
-  idsToOptNames(t) {
-    return t.map((e) => {
-      const s = this.ui.question.options[e];
-      if (!s)
-        throw new Error(`Invalid option id: ${e}`);
-      return s.text;
-    }).join(", ");
-  }
-  async getFdbk() {
-    const t = this.ui.getAnswer(), e = this.meta.correct, s = this.template.render({
-      QUESTION: this.meta.question_md,
-      OPTIONS: this.meta.options_md.join(", "),
-      CORRECT: this.idsToOptNames(e),
-      ANSWER: this.idsToOptNames(t)
-    }), o = this.settings.load();
-    if (!o) throw new Error("No ai credentials stored");
-    console.log("sending to ai:", s), this.ui.showFeedbackLoading();
-    const n = await this.ai.generate(
-      this.meta.learningGoals,
-      s,
-      o
-    );
-    this.ui.showFeedback(n.summary);
-  }
-}
-const d = {
-  // code: CodeActivityController,
-  choice: f
-  //   cloze: ClozeActivityController,
-};
-function u(r) {
-  return r !== null && r in d;
-}
-function y(r, t, e, s, o) {
-  if (!u(t.type))
-    throw new Error(`unsupported activity type: ${t.type}`);
-  const n = d[t.type];
-  return new n(r, t, e, s, o);
-}
-function w() {
-  const r = document.querySelector("#global-options");
-  if (!r)
-    throw new Error("Could not find global-options element");
-  const t = JSON.parse(r.textContent);
-  if (!t.prompts)
-    throw new Error("prompts missing from global options");
-  return t;
-}
-function E(r) {
-  const t = r.getAttribute("data-act-id"), e = r.getAttribute("data-act-type");
-  if (!t) throw new Error("missing activity id");
-  if (!u(e))
-    throw new Error("unsupported activity type: " + e);
-  const s = r.querySelector("script.activity-meta");
-  if (!s) throw new Error("Missing script.activity-meta");
-  const o = JSON.parse(s.textContent);
-  return {
-    id: Number(t),
-    type: e,
-    correct: o.correct,
-    question_md: o.question_md,
-    options_md: o.options_md
-  };
-}
-function v(r, t, e, s) {
-  const o = [];
-  for (const n of r)
-    try {
-      const i = E(n), a = s[i.type];
-      if (!a)
-        throw new Error("prompt template not found:" + i.type);
-      o.push({
-        meta: i,
-        controller: y(n, i, t, e, a)
-      });
-    } catch (i) {
-      console.error(i), n.classList.add("debug-error");
-    }
-  return {
-    activitities: o
-  };
-}
-const k = ({ activities: r, rawPrompts: t }) => {
-  const e = r.length;
-  console.log("making debug widget for: " + e);
-  const s = document.createElement("div");
-  s.id = "activity-debug";
-  const o = document.createElement("div");
-  o.textContent = `🐞 ${e} activit${e === 1 ? "y" : "ies"}`, o.addEventListener("click", () => {
-    r.length ? alert(
-      `Activities:
-` + r.map((a) => `${a.id}: ${a.type}`).join(`
-`)
-    ) : alert("No activities detected");
-  });
-  const n = document.createElement("div"), i = Object.keys(t).length;
-  return n.textContent = `${i} prompts`, n.addEventListener("click", () => {
-    alert(
-      i ? `Prompts:
-` + Object.keys(t).map((a) => `${a}: ${t[a]}`).join(`
-
-`) : "No prompts detected"
-    );
-  }), s.replaceChildren(o, n), s;
-}, S = ({ title: r, subtitle: t = "This may take a few seconds..." }) => {
+const S = ({ title: r, subtitle: t = "This may take a few seconds..." }) => {
   const e = document.createElement("div");
   e.className = "spinner";
   const s = document.createElement("h1");
   s.textContent = r;
-  const o = document.createElement("p");
-  o.textContent = t;
-  const n = document.createElement("div");
-  n.className = "loader", n.replaceChildren(e, s, o);
+  const n = document.createElement("p");
+  n.textContent = t;
+  const o = document.createElement("div");
+  o.className = "loader", o.replaceChildren(e, s, n);
   const i = document.createElement("div");
-  return i.replaceChildren(n), i.className = "loading-fullscreen", i;
+  return i.replaceChildren(o), i.className = "loading-fullscreen", i;
 };
 function C(r, t, e, s) {
   r.addEventListener("click", async () => {
     console.log("pinging AI...");
-    const o = S({ title: "pinging AI" });
-    document.body.appendChild(o);
-    const n = e.load();
-    if (!n) {
-      alert("Please enter AI credentials!");
-      return;
-    }
-    try {
-      const i = await s.ping(n);
-      console.log(i);
-    } catch (i) {
-      alert(i instanceof c ? i.message : i);
-    }
-    o.remove();
-  }), t.addEventListener("click", async () => {
+    const n = S({ title: "pinging AI" });
+    document.body.appendChild(n);
     const o = e.load();
     if (!o) {
       alert("Please enter AI credentials!");
       return;
     }
+    try {
+      const i = await s.ping(o);
+      console.log(i);
+    } catch (i) {
+      alert(i instanceof c ? i.message : i);
+    }
+    n.remove();
+  }), t.addEventListener("click", async () => {
+    const n = e.load();
+    if (!n) {
+      alert("Please enter AI credentials!");
+      return;
+    }
     console.log("asking for models...");
     try {
-      const n = await s.models(o);
-      console.log(n);
-    } catch (n) {
-      alert(n instanceof c ? n.message : n);
+      const o = await s.models(n);
+      console.log(o);
+    } catch (o) {
+      alert(o instanceof c ? o.message : o);
     }
   });
 }
 function O() {
-  const r = w();
+  const r = y();
   console.log("global options", r);
   const t = r.prompts.system;
   t || console.error("No system prompt!");
-  const e = new p(t ?? "system prompt"), s = document.querySelector("#btn-ping"), o = document.querySelector("#btn-models"), n = new h(), i = document.querySelector("#settings-form");
+  const e = new v(t ?? "system prompt"), s = document.querySelector("#btn-ping"), n = document.querySelector("#btn-models"), o = new h(), i = document.querySelector("#settings-form");
   if (!i) throw new Error("missing settings form");
-  new m(i, n), s && o ? C(s, o, n, e) : console.warn("Some debugging button is missing");
-  const a = v(
+  new m(i, o), s && n ? C(s, n, o, e) : console.warn("Some debugging button is missing");
+  const a = E(
     document.querySelectorAll(".activity"),
     e,
-    n,
+    o,
     r.prompts
   );
   document.body.appendChild(
     k({
-      activities: a.activitities.map((l) => l.meta),
+      activities: a.activitities.map((u) => u.meta),
       rawPrompts: r.prompts
     })
   );
