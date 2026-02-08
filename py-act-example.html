@@ -159,8 +159,11 @@ window.Quarto = {
   <button id="btn-models">models -&gt; console</button>
 </div>
 
-<script type="application/json" id="global-options">{"prompts":{"answer":"Here is a question: {{QUESTION}}\n I think the answer is {{ANSWER}}. Please give me the correct answer and explain it clearly.\nThe options are: {{OPTIONS}}","choice":"Give a concise hint on the following multiple choice question: {{QUESTION}}. The options are: {{OPTIONS}}. The correct answer is {{CORRECT}}. The student answered {{ANSWER}}.","i_think":"Give me a concise hint on this multiple choice question: {{QUESTION}}. I think the answer is {{ANSWER}}.","minimal":"Question: {{QUESTION}}\nOptions: {{OPTIONS}}\nCorrect answer {{CORRECT}}\nMy guess: {{ANSWER}}\n\nGive me a hint.","system":"You are an AI Assistant, specialized in python programming. You give concise answers, without asking further questions."}}</script>
+<script type="application/json" id="global-options">{"prompts":{"answer":"Here is a question: {{QUESTION}}\n I think the answer is {{ANSWER}}. Please give me the correct answer and explain it clearly.\nThe options are: {{OPTIONS}}","choice":"Give a concise hint on the following multiple choice question: {{QUESTION}}. The options are: {{OPTIONS}}. The correct answer is {{CORRECT}}. The student answered {{ANSWER}}.","i_think":"Give me a concise hint on this multiple choice question: {{QUESTION}}. I think the answer is {{ANSWER}}.","minimal":"Question: {{QUESTION}}\nOptions: {{OPTIONS}}\nCorrect answer {{CORRECT}}\nMy guess: {{ANSWER}}\n\nGive me a hint.","system":"You are an AI Assistant, specialized in python programming. You give concise answers, without asking further questions.","text_grading":"Question: {{QUESTION}}\nMy answer is {{ANSWER}}\nAnswer with a single statement ('correct', 'incorrect' or 'almost correct').","text_hint":"Consider this question: {{QUESTION}}\nI think the answer is '{{ANSWER}}', please give me a hint if I'm wrong. Don't reveal the answer but do point out my mistakes."}}</script>
 <p>This filter formats ‘activity code blocks’ and injects JS and CSS.</p>
+<div class="border">
+<p>Here is a random div. It should not be parsed!</p>
+</div>
 <section id="multiple-choice-questions" class="level2">
 <h2 class="anchored" data-anchor-id="multiple-choice-questions">Multiple choice questions</h2>
 <p>Here is an activity (Current supported syntax is a subset of <a href="https://github.com/parmsam/quarto-quizdown">(quarto) quizdown</a>)</p>
@@ -191,38 +194,27 @@ window.Quarto = {
 <script type="application/json" class="activity-meta">{"correct":[3],"id":1,"options_md":["1","2","3","4"],"question_md":"What is the value of `x[2]`?\n``` python\nx = [2, 3, 4]\nprint(x[2])\n```","type":"choice"}</script>
 </div>
 </section>
+<section id="text-activity" class="level2">
+<h2 class="anchored" data-anchor-id="text-activity">Text activity</h2>
+<p>Allow user to type answer freely (exact match answer)</p>
+<div class="activity activity-text">
+<p>What does this print?</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="fl">0.2</span><span class="op">+</span><span class="fl">0.1</span><span class="op">==</span><span class="fl">0.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<input type="text" name="text-input">
+<script type="application/json" class="activity-meta">{"correct":"False","grading":"normalized-exact","id":2,"prompt_key":"text_hint","prompt_key_grading":"text_grading","question_md":"What does this print?\n\n``` python\nprint(0.2+0.1==0.3)\n```","type":"text"}</script>
+</div>
+<p>Allow user to type answer freely (AI grades answer, unreliable and scary?)</p>
+<div class="activity activity-text">
+<p>What does this print?</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="fl">0.2</span><span class="op">+</span><span class="fl">0.1</span><span class="op">==</span><span class="fl">0.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<input type="text" name="text-input">
+<script type="application/json" class="activity-meta">{"grading":"ai","id":3,"prompt_key":"text_hint","prompt_key_grading":"text_grading","question_md":"What does this print?\n\n``` python\nprint(0.2+0.1==0.3)\n```","type":"text"}</script>
+</div>
+</section>
 <section id="compare-some-prompts" class="level2">
 <h2 class="anchored" data-anchor-id="compare-some-prompts">Compare some prompts…</h2>
 <section id="choice" class="level3">
 <h3 class="anchored" data-anchor-id="choice">Choice</h3>
-<div class="activity activity-choice">
-<p>What does this python code do?</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="fl">0.2</span><span class="op">+</span><span class="fl">0.1</span><span class="op">==</span><span class="fl">0.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<ul class="task-list">
-<li><label><input type="checkbox">True</label></li>
-<li><label><input type="checkbox">False</label></li>
-<li><label><input type="checkbox">It raises an error</label></li>
-</ul>
-<script type="application/json" class="activity-meta">{"correct":[1],"id":2,"options_md":["True","False","It raises an error"],"prompt_key":"choice","question_md":"What does this python code do?\n``` python\n\nprint(0.2+0.1==0.3)\n```","type":"choice"}</script>
-</div>
-</section>
-<section id="i-think" class="level3">
-<h3 class="anchored" data-anchor-id="i-think">i think</h3>
-<div class="activity activity-choice">
-<p>What does this python code do?</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="fl">0.2</span><span class="op">+</span><span class="fl">0.1</span><span class="op">==</span><span class="fl">0.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<ul class="task-list">
-<li><label><input type="checkbox">True</label></li>
-<li><label><input type="checkbox">False</label></li>
-<li><label><input type="checkbox">It raises an error</label></li>
-</ul>
-<script type="application/json" class="activity-meta">{"correct":[1],"id":3,"options_md":["True","False","It raises an error"],"prompt_key":"i_think","question_md":"What does this python code do?\n``` python\n\nprint(0.2+0.1==0.3)\n```","type":"choice"}</script>
-</div>
-</section>
-<section id="answer" class="level3">
-<h3 class="anchored" data-anchor-id="answer">answer</h3>
 <div class="activity activity-choice">
 <p>What does this python code do?</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a></span>
@@ -232,7 +224,35 @@ window.Quarto = {
 <li><label><input type="checkbox">False</label></li>
 <li><label><input type="checkbox">It raises an error</label></li>
 </ul>
-<script type="application/json" class="activity-meta">{"correct":[1],"id":4,"options_md":["True","False","It raises an error"],"prompt_key":"answer","question_md":"What does this python code do?\n``` python\n\nprint(0.2+0.1==0.3)\n```","type":"choice"}</script>
+<script type="application/json" class="activity-meta">{"correct":[1],"id":4,"options_md":["True","False","It raises an error"],"prompt_key":"choice","question_md":"What does this python code do?\n``` python\n\nprint(0.2+0.1==0.3)\n```","type":"choice"}</script>
+</div>
+</section>
+<section id="i-think" class="level3">
+<h3 class="anchored" data-anchor-id="i-think">i think</h3>
+<div class="activity activity-choice">
+<p>What does this python code do?</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="fl">0.2</span><span class="op">+</span><span class="fl">0.1</span><span class="op">==</span><span class="fl">0.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul class="task-list">
+<li><label><input type="checkbox">True</label></li>
+<li><label><input type="checkbox">False</label></li>
+<li><label><input type="checkbox">It raises an error</label></li>
+</ul>
+<script type="application/json" class="activity-meta">{"correct":[1],"id":5,"options_md":["True","False","It raises an error"],"prompt_key":"i_think","question_md":"What does this python code do?\n``` python\n\nprint(0.2+0.1==0.3)\n```","type":"choice"}</script>
+</div>
+</section>
+<section id="answer" class="level3">
+<h3 class="anchored" data-anchor-id="answer">answer</h3>
+<div class="activity activity-choice">
+<p>What does this python code do?</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="fl">0.2</span><span class="op">+</span><span class="fl">0.1</span><span class="op">==</span><span class="fl">0.3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<ul class="task-list">
+<li><label><input type="checkbox">True</label></li>
+<li><label><input type="checkbox">False</label></li>
+<li><label><input type="checkbox">It raises an error</label></li>
+</ul>
+<script type="application/json" class="activity-meta">{"correct":[1],"id":6,"options_md":["True","False","It raises an error"],"prompt_key":"answer","question_md":"What does this python code do?\n``` python\n\nprint(0.2+0.1==0.3)\n```","type":"choice"}</script>
 </div>
 </section>
 </section>
