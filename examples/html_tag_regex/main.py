@@ -8,11 +8,14 @@ import re
 # import regex as re
 import timeit
 from html.parser import HTMLParser
+from rich.console import Console
 
 # Run each regex operation 1000 times
 NTRIALS = 100
 # Compute mean and standard deviation
 NREPEAT = 5
+
+cons = Console()
 
 
 def stats(vals: list[float]):
@@ -48,7 +51,7 @@ def try_pattern(pat: re.Pattern, text: str):
 def complexity_by_length():
     pat_lazy = re.compile(r"<.+?>")
     pat_non = re.compile(r"<[^>]+>")
-    lengths = [10**k for k in range(7)]
+    lengths = [10**k for k in range(3, 7)]
     times_lazy = []
     times_non = []
     for n in lengths:
@@ -56,15 +59,15 @@ def complexity_by_length():
         times_lazy.append(timeit.timeit(lambda: pat_lazy.findall(string), number=10))
         times_non.append(timeit.timeit(lambda: pat_non.findall(string), number=10))
 
-    print("length   :", " ".join(f"{le:6d}" for le in lengths))
-    print("time")
-    print(
+    cons.print("length   :", " ".join(f"{le:6d}" for le in lengths))
+    cons.print("time factor")
+    cons.print(
         "lazy     :",
-        " ".join(f"{1000 * t:.4f}".rjust(6) for t in times_lazy),
+        " ".join(f"{int(t / times_lazy[0]):4d}".rjust(6) for t in times_lazy),
     )
-    print(
+    cons.print(
         "non-lazy :",
-        " ".join(f"{1000 * t:.4f}".rjust(6) for t in times_non),
+        " ".join(f"{int(t / times_non[0]):4d}".rjust(6) for t in times_non),
     )
 
 
@@ -106,7 +109,7 @@ if __name__ == "__main__":
     print("Regex comparison!")
     for name, pat in patterns.items():
         found, t_mean, t_std = try_pattern(pat, text)
-        print(
+        cons.print(
             f'\n"{name}" : {pat.pattern}'.ljust(30)
             + f"| time: {1000 * t_mean:.2f} ms (std: {1000 * t_std:.2f}) | found: {len(found)}/{n_expected}"
         )
@@ -123,7 +126,7 @@ if __name__ == "__main__":
     t_mean, t_std = stats(
         timeit.repeat(lambda: p.feed(text), repeat=NREPEAT, number=NTRIALS)
     )
-    print(
+    cons.print(
         '\n"HTML Parser"'.ljust(30)
         + f"| time: {1000 * t_mean:.2f} ms (std: {1000 * t_std:.2f}) | found: {len(found)}/{n_expected}"
     )

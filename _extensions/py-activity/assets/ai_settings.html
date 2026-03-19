@@ -1,0 +1,31 @@
+<p>TODO: this ai settings file should generate from source!</p>
+<div id="ai-settings">
+  <h2>AI settings</h2>
+  <div>
+    for example:
+    <dl>
+      <dt>Ollama</dt>
+      <dd><code>http://127.0.0.1:11434/v1</code></dd>
+      <dt>Cerebras</dt>
+      <dd><code>https://api.cerebras.ai/v1</code></dd>
+    </dl>
+  </div>
+  <form action="post" id="settings-form">
+    <label for="input-baseUrl">Base URL</label>
+    <input
+      type="text"
+      name="baseUrl"
+      id="input-baseUrl"
+      placeholder="http(s)://.../v1"
+    />
+
+    <label for="input-apiKey">API Key</label>
+    <input type="text" name="apiKey" id="input-apiKey" />
+
+    <label for="input-model">Model</label>
+    <input type="text" name="model" id="input-model" />
+    <button type="submit">Save</button>
+  </form>
+  <button id="btn-ping">ping ai -> console</button>
+  <button id="btn-models">models -> console</button>
+</div>

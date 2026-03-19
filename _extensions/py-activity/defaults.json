@@ -1,0 +1,11 @@
+{
+  "prompts": {
+    "system": "You are an AI Assistant, specialized in python programming. You give concise answers, without asking further questions.",
+    "choice": "Give a concise hint on the following multiple choice question: {{QUESTION}}. The options are: {{OPTIONS}}. The correct answer is {{CORRECT}}. The student answered {{ANSWER}}.",
+    "i_think": "Give me a concise hint on this multiple choice question: {{QUESTION}}. I think the answer is {{ANSWER}}.",
+    "answer": "Here is a question: {{QUESTION}}\n I think the answer is {{ANSWER}}. Please give me the correct answer and explain it clearly.\nThe options are: {{OPTIONS}}",
+    "minimal": "Question: {{QUESTION}}\nOptions: {{OPTIONS}}\nCorrect answer {{CORRECT}}\nMy guess: {{ANSWER}}\n\nGive me a hint.",
+    "text_hint": "Consider this question: {{QUESTION}}\nI think the answer is '{{ANSWER}}', please give me a hint if I'm wrong. Don't reveal the answer but do point out my mistakes.",
+    "text_grading": "Question: {{QUESTION}}\nMy answer is {{ANSWER}}\nAnswer with a single statement ('correct', 'incorrect' or 'almost correct')."
+  }
+}

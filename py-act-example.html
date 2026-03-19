@@ -69,7 +69,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="py-act-example_files/libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="py-act-example_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="py-act-example_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="py-act-example_files/libs/bootstrap/bootstrap-ffb42ed14089ee471f7e13baa80ead07.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="py-act-example_files/libs/bootstrap/bootstrap-6d6f47547b806346c710d1935a49d2a5.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="py-act-example_files/libs/quarto-contrib/py-activity-0.1.0/py-activity-runtime.js" type="module"></script>
 <link href="py-act-example_files/libs/quarto-contrib/py-activity-0.1.0/py-activity-runtime.css" rel="stylesheet">
 
@@ -130,21 +130,19 @@ window.Quarto = {
 </header>
 
 
+<p>TODO: this ai settings file should generate from source!</p>
 <div id="ai-settings">
   <h2 class="anchored">AI settings</h2>
   <div>
     for example:
     <dl>
-      <dt>
-        Ollama (Needs to allow CORS, "OLLAMA_ORIGINS=*", or at least the domain
-        this is served from)
-      </dt>
+      <dt>Ollama</dt>
       <dd><code>http://127.0.0.1:11434/v1</code></dd>
-      <dt>Cerebras (Needs API key)</dt>
+      <dt>Cerebras</dt>
       <dd><code>https://api.cerebras.ai/v1</code></dd>
     </dl>
   </div>
-  <form id="settings-form">
+  <form action="post" id="settings-form">
     <label for="input-baseUrl">Base URL</label>
     <input type="text" name="baseUrl" id="input-baseUrl" placeholder="http(s)://.../v1">
 

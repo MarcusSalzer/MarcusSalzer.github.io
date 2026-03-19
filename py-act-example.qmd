@@ -1,0 +1,133 @@
+---
+title: "Py-activity Example"
+filters:
+  - py-activity
+---
+
+
+This filter formats 'activity code blocks' and injects JS and CSS.
+
+:::{.border}
+Here is a random div. It should not be parsed!
+:::
+
+## Multiple choice questions
+
+
+Here is an activity (Current supported syntax is a subset of [(quarto) quizdown](https://github.com/parmsam/quarto-quizdown)) 
+
+::: activity-choice
+```
+#| prompt_key: choice
+```
+What is the value of `1+1` ($1+1$)?
+
+
+-   [ ] 1 (i.e the number **one**)
+-   [x] 2 
+-   [ ] $3$
+-   [ ] 4
+:::
+
+
+## Python Lists (multiple choice)
+::: activity-choice
+
+What is the value of `x[2]`?
+
+``` python
+x = [2, 3, 4]
+print(x[2])
+```
+
+-   [ ] 1
+-   [ ] 2
+-   [ ] 3
+-   [x] 4
+:::
+
+
+## Text activity
+
+Allow user to type answer freely (exact match answer)
+
+::: activity-text
+What does this print?
+```python
+#| grading: normalized-exact
+#| prompt_key: text_hint
+#| correct: False
+print(0.2+0.1==0.3)
+```
+:::
+
+
+Allow user to type answer freely (AI grades answer, unreliable and scary?)
+
+::: activity-text
+What does this print?
+```python
+#| grading: ai
+#| prompt_key: text_hint
+
+print(0.2+0.1==0.3)
+```
+:::
+
+
+## Compare some prompts...
+
+### Choice
+
+::: activity-choice
+
+What does this python code do?
+
+``` python
+#| prompt_key: choice
+
+print(0.2+0.1==0.3)
+```
+
+-   [ ] True
+-   [x] False
+-   [ ] It raises an error
+:::
+
+
+
+### i think
+
+::: activity-choice
+
+What does this python code do?
+
+``` python
+#| prompt_key: i_think
+
+print(0.2+0.1==0.3)
+```
+
+-   [ ] True
+-   [x] False
+-   [ ] It raises an error
+:::
+
+
+### answer
+
+::: activity-choice
+
+What does this python code do?
+
+``` python
+#| prompt_key: answer
+
+print(0.2+0.1==0.3)
+```
+
+-   [ ] True
+-   [x] False
+-   [ ] It raises an error
+:::
+
