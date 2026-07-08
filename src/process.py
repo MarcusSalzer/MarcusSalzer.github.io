@@ -10,7 +10,7 @@ md = MarkdownIt().enable_many(["front_matter", "deflist", "table"])
 pat_slot = re.compile(r"{{ *(?P<k>\S+) *}}")
 
 pat_heading_html = re.compile(r"<h(\d)>(.+?)</h\1>", re.MULTILINE)
-pat_codeblock_md = re.compile(r"```(?:\s\w*)\n.+?\n```", re.DOTALL)
+pat_codeblock_md = re.compile(r"```(?: ?\w*)\n.+?\n```", re.DOTALL)
 pat_codeblock_html = re.compile(r"<pre><code class=\"(?:[^\"]+)\">[^<]+?</code></pre>", re.DOTALL)
 
 
