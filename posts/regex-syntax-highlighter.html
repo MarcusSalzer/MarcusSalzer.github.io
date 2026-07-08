@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>regex-syntax-highlighter.md</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" media="screen" href="/style.css" />
+</head>
+
+<body>
+    <aside><a href="#building-a-syntax-highlighter-with-regex-and-python" class="anchor1">Building a syntax highlighter with regex and python</a>
+<a href="#approach" class="anchor2">Approach</a>
+<a href="#dependencies" class="anchor3">Dependencies</a>
+<a href="#tag-patterns" class="anchor2">Tag patterns</a>
+<a href="#what-is-a-number?" class="anchor3">What is a number?</a>
+<a href="#operators" class="anchor3">Operators</a>
+<a href="#comments-and-strings" class="anchor3">Comments and strings</a>
+<a href="#named-groups-&amp;-a-chunk-of-regex" class="anchor2">Named groups &amp; a chunk of regex</a>
+<a href="#a-note-on-performance" class="anchor3">A note on performance</a>
+<a href="#a-note-on-maintainability" class="anchor3">A note on maintainability</a>
+<a href="#output-formatting" class="anchor2">Output formatting</a>
+<a href="#html" class="anchor3">HTML</a>
+<a href="#nested-brackets" class="anchor3">Nested brackets</a>
+<a href="#css" class="anchor3">CSS</a>
+<a href="#more-examples" class="anchor2">More examples</a>
+<a href="#conclusion" class="anchor2">Conclusion</a>
+        <hr />
+        <a href="/">Home</a>
+    </aside>
+    <div class="content">
+        <main><h1 id="building-a-syntax-highlighter-with-regex-and-python">Building a syntax highlighter with regex and python</h1>
+<p>I originally wrote this up just to organize my own thoughts, but figured it might be worth sharing. So here it is, cleaned up a bit and put online.</p>
+<p>Let's go through a simple <strong>syntax highlighting program</strong>, based on <em>regex patterns</em> and HTML+CSS for some colorful output. The idea is straightforward:</p>
+<ul>
+<li>take a code snippet as input</li>
+<li>break it into tokens</li>
+<li>assign a tag to each token</li>
+<li>and then format the result as HTML</li>
+</ul>
+<p>For example, for the snippet <code>x = 37</code> we get the tokens <code>['x', ' ', '=', ' ', '37']</code>, and then we produce the HTML:</p>
+
+<pre class="code-snippet">x &lt;span class<span class="opas">=</span><span class="st">&quot;opas&quot;</span>&gt;<span class="opas">=</span>&lt;/span&gt; &lt;span class<span class="opas">=</span><span class="st">&quot;nu&quot;</span>&gt;<span class="nu">37</span>&lt;/span&gt;</pre>
+
+<p>Here, the tags <code>opas</code> (assignment operator) and <code>nu</code> (number) can be styled with the desired colors. Thanks to such CSS-classes we can customize color-scheme when needed, without re-running the highlighter program.</p>
+<h2 id="approach">Approach</h2>
+<p>Since we’re dealing with source code rather than natural language, we can expect to find some recurring patterns. That’s why regex can actually get us pretty far.</p>
+<p>Hopefully, I will get around to a second part of this post, and we'll look into some more advanced Machine Learning based methods. But for now, lets see what we can accomplish with a <strong>regex pattern</strong>. I'm hoping for:</p>
+<dl>
+<dt>A logical tokenization</dt>
+<dd>Break the code into pieces, where each token has a single purpose.</dd>
+<dt>Partial sequence tagging</dt>
+<dd>Use regex to capture categories such as numbers, strings, and common operators, without relying on long contexts.</dd>
+<dt>Language agnostic design</dt>
+<dd>By using flexible regex patterns instead of language-specific lookup tables, the same highlighter should work for most programming languages.</dd>
+</dl>
+<h3 id="dependencies">Dependencies</h3>
+<p>For this project, we need the <a href="https://pypi.org/project/regex/"><code>regex</code> package</a>. Compared to Python's built in <code>re</code>, it is more flexible, for instance supporting <em>variable length lookbacks</em> (perhaps at the cost of speed in some cases).</p>
+<h2 id="tag-patterns">Tag patterns</h2>
+<p>So, let's look at some things we might be able to tag. I won't go into too many details here, rather focus on the overall approach. To learn more and experiment with regex patterns, check out <a href="https://regex101.com/">regex101.com</a>, with an excellent visualizer and explanations.</p>
+<h3 id="what-is-a-number?">What is a number?</h3>
+<p>So the easiest variant would be an integer, simply <code>\d+</code>. To allow decimals, we can do something like <code>\d+\.\d+</code>. Now to catch either of those cases we can use an optional <em>non-capturing group</em>, like <code>\d+(?:\.\d?)</code>. This will capture many numbers, like <em>1337, 0.1, 4.44</em>. In addition, some languages allow separators and letter-suffixes, such as <code>1_000_000</code> or <code>'123usize'</code>, so lets add <code>[\d_]*</code> in the middle and  <code>\w*</code> at the end . Also, let's catch percentages. So, we append <code>%?</code> to our number pattern.</p>
+<p>Scientific numbers, such as <code>1e-9</code> and <code>6.022e23</code>, are not that bad either.</p>
+<p>Let's also include hexadecimal and binary numbers for good measure.
+In the end, I settled for these patterns, and they seem to catch all numbers i could think of.</p>
+
+<pre class="code-snippet"><span class="co"># numbers: scientific</span>
+r<span class="st">&quot;(?&lt;!\w)\d+(?:\.\d+)?+e-\d+&quot;</span>
+<span class="co"># numbers: hex, bin,</span>
+r<span class="st">&quot;(?&lt;!\w)0x[0-9a-fA-F]+|0b[01]+&quot;</span>
+<span class="co"># numbers: integer, decimal, percent</span>
+r<span class="st">&quot;(?&lt;!\w)\d[\d_]*(?:\.\d+)?\w*%?&quot;</span></pre>
+
+<p>Note the look-back <code>(?&lt;!\w)</code>, this prevents accidentally catching numbers inside variable names and identifiers (such as <code>user1</code> and <code>MyClassV2</code>). Also note the order; for example we need to apply scientific numbers before &quot;regular&quot; numbers, to get <code>1e-9</code> as a single number, rather than 2 numbers and a subtraction sign.</p>
+<h3 id="operators">Operators</h3>
+<p>I believe we can capture the most common binary/unary operators with the following patterns (hopefully this doesn't break in some language i don't know):</p>
+
+<pre class="code-snippet"><span class="co"># common binary operators</span>
+r<span class="st">&quot;===|!==|==|!=|&lt;&lt;|&gt;&gt;|\*\*|\/\/|\.\^|\|\||&amp;&amp;|~\/&quot;</span>
+<span class="co"># common unary operators</span>
+r<span class="st">&quot;\+\+|--&quot;</span></pre>
+
+<p>Note that some operators, like <code>+</code>, <code>-</code> and <code>*</code> are not included, since they could be used in both ways. Of course we could put them in a generic &quot;operator&quot; category, but why not save them for later.</p>
+<h3 id="comments-and-strings">Comments and strings</h3>
+<p><strong>A simple string</strong> is given by something like: <code>\&quot;[^\&quot;\n]*\&quot;</code>.  Then, we can do similar patterns for stuff like single quotes, back-tics, etc. For strings that can span multiple lines (such as Python's triple-quote strings) we can do <code>&quot;\&quot;{3}[\s\S]*\&quot;{3}&quot;</code>. The middle part with <code>[\s\S]*</code> might be a bit ugly, but allows us to match anything, without enabling the <code>dotall</code> flag for the whole combined pattern.</p>
+<p><strong>Comments</strong> are a little more tricky. The pattern <code>#.*$</code> is a safe bet for languages like Python and bash. Then <code>\/\/.*$</code> is quite tempting for C-style comments, but what about <code>//</code> as an operator (integer division in python)? So unfortunately i ended up with some ugly heuristics for comments.</p>
+<p>For example, the look-behind <code>(?&lt;=(?:^|[;,])\s*)</code> is useful for many comments, since they typically come after a line start, or a &quot;punctuation&quot;, with some whitespace in-between  However, it is not fixed width (due to the <code>\s*</code> part), which is fine with the <code>regex</code> module in Python, but incompatible with many other regex engines.</p>
+<h2 id="named-groups-&amp;-a-chunk-of-regex">Named groups &amp; a chunk of regex</h2>
+<p>Now, we have a long list of sub-patterns, lets store them as tuples, with a short name per pattern:</p>
+
+<pre class="code-snippet">
+patterns <span class="opas">=</span> <span class="br0">[</span>
+    <span class="br1">(</span><span class="st">&quot;co&quot;</span><span class="pu">,</span> r<span class="st">&quot;^(?:\/{2,3}|#|%).+$&quot;</span><span class="br1">)</span><span class="pu">,</span>  <span class="co"># one full line comment</span>
+    <span class="co"># ...</span>
+    <span class="br1">(</span><span class="st">&quot;st&quot;</span><span class="pu">,</span> r<span class="st">&quot;\&quot;</span><span class="br2">{</span><span class="nu">3</span><span class="br2">}[</span>\s\S<span class="br2">]</span>*\<span class="st">&quot;{3}&quot;</span><span class="br1">)</span><span class="pu">,</span>
+    <span class="br1">(</span><span class="st">&quot;st&quot;</span><span class="pu">,</span> r<span class="st">&quot;&apos;{3}[\s\S]*&apos;{3}&quot;</span><span class="br1">)</span><span class="pu">,</span>
+    <span class="br1">(</span><span class="st">&quot;st&quot;</span><span class="pu">,</span> r<span class="st">&quot;\&quot;</span><span class="br2">[</span>^\<span class="st">&quot;\n]*\&quot;</span>&quot;<span class="br2">)</span><span class="pu">,</span> <span class="co"># basic double-quote string</span>
+    <span class="co"># ...</span>
+    <span class="br2">(</span><span class="st">&quot;uk&quot;</span><span class="pu">,</span> r<span class="st">&quot;\w+|[^\w\s]+?&quot;</span><span class="br2">)</span><span class="pu">,</span>  <span class="co"># everything else</span>
+<span class="br1">]</span></pre>
+
+<p>In total, I ended up with around 35 such tuples. we can then build our final pattern like this:</p>
+
+<pre class="code-snippet">re<span class="sy">.</span>compile<span class="br0">(</span><span class="st">&quot;|&quot;</span><span class="sy">.</span>join<span class="br1">(</span>f<span class="st">&quot;(?P&lt;{t}&gt;{p})&quot;</span> for t<span class="pu">,</span> p in patterns<span class="br1">)</span><span class="pu">,</span> re<span class="sy">.</span>M<span class="br0">)</span></pre>
+
+<p>By using the form <code>(?P&lt;{t}&gt;{p})</code> we get named capture groups, giving us <em>tokenization</em> and <em>tagging</em> in a single operation. We also use the &quot;Multi-line&quot; flag (<code>re.M</code>) to make use of <code>^</code>, <code>$</code> to match the beginning and end of each line.</p>
+<p>Here we process an input string:</p>
+
+<pre class="code-snippet">tokens<span class="sy">:</span> list<span class="br0">[</span>str<span class="br0">]</span> <span class="opas">=</span> <span class="br0">[]</span>
+tags<span class="sy">:</span> list<span class="br0">[</span>str<span class="br0">]</span> <span class="opas">=</span> <span class="br0">[]</span>
+<span class="co"># Iterate over all matches</span>
+for m in re_token<span class="sy">.</span>finditer<span class="br0">(</span>text<span class="br0">)</span><span class="sy">:</span>
+    tokens<span class="sy">.</span>append<span class="br0">(</span>m<span class="sy">.</span>group<span class="br1">()</span><span class="br0">)</span>  <span class="co"># matched token</span>
+    t <span class="opas">=</span> m<span class="sy">.</span>lastgroup <span class="co"># get tag from named group</span>
+    tags<span class="sy">.</span>append<span class="br0">(</span>t<span class="br0">)</span></pre>
+
+<h3 id="a-note-on-performance">A note on performance</h3>
+<p>By building the regex in parts, I'm sure there are some redundant parts, and possible optimizations. However, despite the mess, regex is fast, and the process typically takes under 10 ms on a typical code snippet.</p>
+<h3 id="a-note-on-maintainability">A note on maintainability</h3>
+<p>Now, since the regex prioritizes each sub-pattern in the union in the order given, we have to be careful when introducing a new rule in the middle. For instance <em>comments</em> and <em>strings</em> need to be early, since they can contain all kinds of other things. For example we want to tag <code>&quot;hello 777&quot;</code> as a single string-token. and the snippet <code>3.2 # or was it 3.1?</code> should give one number and one comment.</p>
+<p>So, to avoid breaking cases that already work we can write some small unit tests. The <strong>pytest</strong> library, or the standard library <strong>unittest</strong> work more than well for this. For example, here we test the tokenization for a single variable assignment:</p>
+
+<pre class="code-snippet">class TestRegex<span class="sy">:</span>
+    def test_single_stmt<span class="br0">(</span>self<span class="br0">)</span><span class="sy">:</span>
+        tk<span class="pu">,</span> _ <span class="opas">=</span> process_regex<span class="br0">(</span><span class="st">&quot;x = 3&quot;</span><span class="br0">)</span> <span class="co"># get tokens</span>
+        assert tk <span class="opbi">==</span> <span class="br0">[</span><span class="st">&quot;x&quot;</span><span class="pu">,</span> <span class="st">&quot; &quot;</span><span class="pu">,</span> <span class="st">&quot;=&quot;</span><span class="pu">,</span> <span class="st">&quot; &quot;</span><span class="pu">,</span> <span class="st">&quot;3&quot;</span><span class="br0">]</span></pre>
+
+<h2 id="output-formatting">Output formatting</h2>
+<h3 id="html">HTML</h3>
+<p>So, the basic idea is to append a bunch of <code>&lt;span class=&quot;...&quot;&gt;...&lt;/span&gt;</code> to a string. But we need to make sure our tokens don't contain any HTML special-characters, so we run them through this:</p>
+
+<pre class="code-snippet">def html_specials<span class="br0">(</span>text<span class="sy">:</span> str<span class="br0">)</span> <span class="sy">-&gt;</span> str<span class="sy">:</span>
+    <span class="st">&quot;&quot;&quot;Replace html reserved characters.&quot;&quot;&quot;</span>
+
+    text <span class="opas">=</span> re<span class="sy">.</span>sub<span class="br0">(</span>r<span class="st">&quot;&amp;&quot;</span><span class="pu">,</span> r<span class="st">&quot;&amp;amp;&quot;</span><span class="pu">,</span> text<span class="br0">)</span>
+    text <span class="opas">=</span> re<span class="sy">.</span>sub<span class="br0">(</span>r<span class="st">&quot;&lt;&quot;</span><span class="pu">,</span> r<span class="st">&quot;&amp;lt;&quot;</span><span class="pu">,</span> text<span class="br0">)</span>
+    text <span class="opas">=</span> re<span class="sy">.</span>sub<span class="br0">(</span>r<span class="st">&quot;&gt;&quot;</span><span class="pu">,</span> r<span class="st">&quot;&amp;gt;&quot;</span><span class="pu">,</span> text<span class="br0">)</span>
+    text <span class="opas">=</span> re<span class="sy">.</span>sub<span class="br0">(</span>r<span class="st">&apos;&quot;&apos;</span><span class="pu">,</span> r<span class="st">&quot;&amp;quot;&quot;</span><span class="pu">,</span> text<span class="br0">)</span>
+    text <span class="opas">=</span> re<span class="sy">.</span>sub<span class="br0">(</span>r<span class="st">&quot;&apos;&quot;</span><span class="pu">,</span> r<span class="st">&quot;&amp;apos;&quot;</span><span class="pu">,</span> text<span class="br0">)</span>
+    return text</pre>
+
+<p>Also, to avoid unnecessary markup we can skip the span and the class for the white-space and unknown categories. So our final formatting looks like:</p>
+
+<pre class="code-snippet"><span class="co"># no need to tag whitespace/unknown tokens</span>
+exclude_tags <span class="opas">=</span> <span class="br0">{</span><span class="st">&quot;ws&quot;</span><span class="pu">,</span> <span class="st">&quot;uk&quot;</span><span class="br0">}</span>
+
+tagged<span class="sy">:</span> list<span class="br0">[</span>str<span class="br0">]</span> <span class="opas">=</span> <span class="br0">[]</span>
+for token<span class="pu">,</span> tag in zip<span class="br0">(</span>tokens<span class="pu">,</span> tags<span class="br0">)</span><span class="sy">:</span>
+    <span class="co"># fix html specials</span>
+    token_text <span class="opas">=</span> html_specials<span class="br0">(</span>token<span class="br0">)</span>
+    if tag in exclude_tags<span class="sy">:</span>
+        tagged<span class="sy">.</span>append<span class="br0">(</span>token_text<span class="br0">)</span> <span class="co"># only token</span>
+    else<span class="sy">:</span>
+        s <span class="opas">=</span> f<span class="st">&apos;&lt;span class=&quot;{tag}&quot;&gt;{token_text}&lt;/span&gt;&apos;</span>
+        tagged<span class="sy">.</span>append<span class="br0">(</span>s<span class="br0">)</span> <span class="co"># token inside span</span>
+
+<span class="co"># mush it all together</span>
+text <span class="opas">=</span> <span class="st">&quot;&quot;</span><span class="sy">.</span>join<span class="br0">(</span>tagged<span class="br0">)</span>
+
+<span class="co"># final code block:</span>
+<span class="co"># wrap with &lt;pre&gt; to preserve linebreaks and indentation</span>
+final_html <span class="opas">=</span> f<span class="st">&apos;\n&lt;pre&gt;{text}&lt;/pre&gt;\n&apos;</span></pre>
+
+<p>We also add a head-element to the top of the document, to link the style-sheet.</p>
+
+<pre class="code-snippet">&lt;head&gt;
+    &lt;link rel<span class="opas">=</span><span class="st">&quot;stylesheet&quot;</span> type<span class="opas">=</span><span class="st">&quot;text/css&quot;</span> href<span class="opas">=</span><span class="st">&quot;style.css&quot;</span>&gt;
+&lt;/head&gt;</pre>
+
+<h3 id="nested-brackets">Nested brackets</h3>
+<p>There is one more thing we should do. To improve readability, code editors can color brackets by level of nesting. So we want to replace our <code>brop</code> and <code>brcl</code> tags with <code>brX</code>, where <code>X</code> represents the level of nesting. For example, the sequence <code>(()[])</code> should get tags <code>br0, br1, br1, br1, br1, br0</code>. We can use this function:</p>
+
+<pre class="code-snippet">def bracket_levels<span class="br0">(</span>tags<span class="sy">:</span> list<span class="br1">[</span>str<span class="br1">]</span><span class="br0">)</span> <span class="sy">-&gt;</span> tuple<span class="br0">[</span>list<span class="br1">[</span>str<span class="br1">]</span><span class="pu">,</span> list<span class="br1">[</span>int<span class="br1">]</span><span class="br0">]</span><span class="sy">:</span>
+    <span class="st">&quot;&quot;&quot;Rename bracket tags from br_op/cl to br{n}.
+
+    Returns
+    -------
+    tags_new: list[str]
+        modified tags
+    &quot;&quot;&quot;</span>
+
+    current_level <span class="opas">=</span> <span class="nu">0</span>
+    tags_new <span class="opas">=</span> tags<span class="sy">.</span>copy<span class="br0">()</span> <span class="co"># modify copy of original tags</span>
+    for i in range<span class="br0">(</span>len<span class="br1">(</span>tags_new<span class="br1">)</span><span class="br0">)</span><span class="sy">:</span>
+        if tags_new<span class="br0">[</span>i<span class="br0">]</span> <span class="opbi">==</span> <span class="st">&quot;brop&quot;</span><span class="sy">:</span>
+            tags_new<span class="br0">[</span>i<span class="br0">]</span> <span class="opas">=</span> f<span class="st">&quot;br{current_level}&quot;</span>
+            <span class="co"># Increased nesting</span>
+            current_level <span class="opas">+=</span> <span class="nu">1</span>
+        elif tags_new<span class="br0">[</span>i<span class="br0">]</span> <span class="opbi">==</span> <span class="st">&quot;brcl&quot;</span><span class="sy">:</span>
+            <span class="co"># Decreased nesting</span>
+            current_level <span class="opas">-=</span> <span class="nu">1</span>
+            tags_new<span class="br0">[</span>i<span class="br0">]</span> <span class="opas">=</span> f<span class="st">&quot;br{current_level}&quot;</span>
+    return tags_new</pre>
+
+<h3 id="css">CSS</h3>
+<p>Last but not least, lets choose some colors for each of our classes (or any other decorations as desired). The CSS might look like this:</p>
+
+<pre class="code-snippet">body <span class="br0">{</span>
+  color<span class="sy">:</span> white<span class="pu">;</span>
+  background-color<span class="sy">:</span> black<span class="pu">;</span>
+<span class="br0">}</span>
+code <span class="br0">{</span>
+  font-family<span class="sy">:</span> <span class="st">&quot;Comic Mono&quot;</span><span class="pu">,</span> monospace<span class="pu">;</span>
+<span class="br0">}</span>
+
+.co <span class="br0">{</span>
+  color<span class="sy">:</span> rgb<span class="br1">(</span><span class="nu">81</span><span class="pu">,</span> <span class="nu">115</span><span class="pu">,</span> <span class="nu">120</span><span class="br1">)</span><span class="pu">;</span>
+  font-style<span class="sy">:</span> italic<span class="pu">;</span>
+<span class="br0">}</span>
+.st <span class="br0">{</span>
+  color<span class="sy">:</span> rgb<span class="br1">(</span><span class="nu">194</span><span class="pu">,</span> <span class="nu">188</span><span class="pu">,</span> <span class="nu">108</span><span class="br1">)</span><span class="pu">;</span>
+<span class="br0">}</span>
+.nu <span class="br0">{</span>
+  color<span class="sy">:</span> rgb<span class="br1">(</span><span class="nu">212</span><span class="pu">,</span> <span class="nu">111</span><span class="pu">,</span> <span class="nu">255</span><span class="br1">)</span><span class="pu">;</span>
+<span class="br0">}</span>
+.br0 <span class="br0">{</span>
+  color<span class="sy">:</span> rgb<span class="br1">(</span><span class="nu">182</span><span class="pu">,</span> <span class="nu">255</span><span class="pu">,</span> <span class="nu">179</span><span class="br1">)</span><span class="pu">;</span>
+<span class="br0">}</span>
+.br1 <span class="br0">{</span>
+  color<span class="sy">:</span> rgb<span class="br1">(</span><span class="nu">179</span><span class="pu">,</span> <span class="nu">231</span><span class="pu">,</span> <span class="nu">255</span><span class="br1">)</span><span class="pu">;</span>
+<span class="br0">}</span>
+<span class="co">/* and so on ... */</span></pre>
+
+<h2 id="more-examples">More examples</h2>
+<p>In addition to the previous examples, let's see what it looks like for a few more languages.</p>
+<p>Java:</p>
+
+<pre class="code-snippet">System<span class="sy">.</span>out<span class="sy">.</span>println<span class="br0">(</span><span class="st">&quot;data: &quot;</span> + data<span class="sy">.</span>length + <span class="st">&quot; samples&quot;</span><span class="br0">)</span><span class="pu">;</span>
+System<span class="sy">.</span>out<span class="sy">.</span>println<span class="br0">(</span>Arrays<span class="sy">.</span>toString<span class="br1">(</span>data<span class="br1">)</span><span class="br0">)</span><span class="pu">;</span></pre>
+
+<p>Rust:</p>
+
+<pre class="code-snippet">let n <span class="opas">=</span> adj<span class="sy">.</span>len<span class="br0">()</span><span class="pu">;</span>
+
+let mut q<span class="sy">:</span> VecDeque&lt;usize&gt; <span class="opas">=</span> VecDeque<span class="sy">::</span>new<span class="br0">()</span><span class="pu">;</span>
+q<span class="sy">.</span>push_back<span class="br0">(</span>start<span class="br0">)</span><span class="pu">;</span></pre>
+
+<p>PHP:</p>
+
+<pre class="code-snippet"><span class="co">// Simulate creating user in past</span>
+$this<span class="sy">-&gt;</span>travel<span class="br0">(</span>-$this<span class="sy">-&gt;</span>lifespan<span class="br0">)</span><span class="sy">-&gt;</span>years<span class="br0">()</span><span class="pu">;</span>
+$u <span class="opas">=</span> new User<span class="pu">;</span>
+$u<span class="sy">-&gt;</span>name <span class="opas">=</span> <span class="st">&apos;Old student&apos;</span><span class="pu">;</span></pre>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>Overall, it works, and while only a few tokens are actually tagged, we might be on track to make something actually useful. If you made it this far, thanks for checking it out, and i hope something was interesting.</p>
+</main>
+    </div>
+</body>
+
+</html>

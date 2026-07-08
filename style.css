@@ -1,175 +1,261 @@
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 body {
-  color: rgb(241, 230, 209);
-  background-color: rgb(17, 17, 17);
+    color: rgb(241, 230, 209);
+    background-color: rgb(17, 17, 17);
 
-  font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
-  margin: 0;
+    font-family: "Franklin Gothic Medium", "Arial Narrow", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
 }
 
 nav {
-  border-bottom: solid 1px rgb(173, 158, 129);
-  margin: 0px auto;
-  z-index: 10;
-  background-color: rgb(36, 33, 33);
-  height: 4rem;
+    border-bottom: solid 1px rgb(173, 158, 129);
+    margin: 0px auto;
+    z-index: 10;
+    background-color: rgb(36, 33, 33);
+    height: 4rem;
 }
 
-nav > ul {
-  max-width: 800px;
-  height: 100%;
-  margin: 0px auto;
+nav>ul {
+    max-width: 800px;
+    height: 100%;
+    margin: 0px auto;
 }
-nav > ul > li {
-  list-style: none;
-  height: 100%;
-  width: fit-content;
-  display: block;
-  padding: 2px 16px;
+
+nav>ul>li {
+    list-style: none;
+    height: 100%;
+    width: fit-content;
+    display: block;
+    padding: 2px 16px;
 }
-nav > ul > li > a {
-  list-style: none;
-  height: 100%;
-  width: 100%;
-  display: inline-block;
-  align-content: center;
+
+nav>ul>li>a {
+    list-style: none;
+    height: 100%;
+    width: 100%;
+    display: inline-block;
+    align-content: center;
 }
 
 dl,
 pre {
-  padding: 2em;
-  margin: 2em 0em;
-  background-color: rgb(27, 27, 27);
+    padding: 2em;
+    margin: 2em 0em;
+    background-color: rgb(27, 27, 27);
 }
+
 dt {
-  font-weight: bold;
+    font-weight: bold;
 }
+
 dd {
-  margin-top: 0.8em;
-  margin-bottom: 1em;
+    margin-top: 0.8em;
+    margin-bottom: 1em;
 }
+
 h1 {
-  text-align: center;
-  text-wrap: balance;
+    text-align: center;
+    text-wrap: balance;
 }
+
 h2 {
-  margin-top: 2em;
+    margin-top: 3em;
 }
+
+h3 {
+    margin-top: 2em;
+}
+
 /* Link colors */
 
 a:link {
-  color: rgb(164, 232, 228);
+    color: rgb(234, 232, 228);
 }
+
 a:visited {
-  color: rgb(181, 167, 182);
+    color: rgb(181, 167, 182);
 }
+
 a:hover {
-  color: rgb(171, 211, 179);
+    color: rgb(171, 211, 179);
 }
 
 code {
-  color: rgb(255, 121, 121);
-  font-family: monospace;
-  font-size: medium;
+    color: rgb(255, 161, 161);
+    font-family: "Comic Mono MS", "monospace";
+    font-size: medium;
 }
-pre > code {
-  color: rgb(239, 188, 214);
-  font-family: monospace;
-  font-size: medium;
+
+pre {
+    color: rgb(239, 188, 214);
+    font-family: "Comic Mono MS", "monospace";
+    font-size: medium;
+    overflow-x: auto;
 }
-a > code {
-  color: unset;
+
+a>code {
+    color: unset;
 }
 
 /* No aside on small screen */
 aside {
-  display: none;
+    display: none;
 }
 
 @media (min-width: 700px) {
-  aside {
-    display: block;
-    position: fixed;
-    top: 0;
-    padding-top: 6rem;
-    height: 100%;
-    width: 240px;
-    background-color: rgb(20, 24, 20);
-    /* border: 2px solid rgb(179, 0, 0); */
-  }
-  div.content {
-    margin-left: 240px;
-  }
+    aside {
+        display: block;
+        position: fixed;
+        top: 0;
+        padding-top: 6rem;
+        height: 100%;
+        width: 240px;
+        background-color: rgb(20, 24, 20);
+        /* border: 2px solid rgb(179, 0, 0); */
+    }
+
+    div.content {
+        margin-left: 240px;
+    }
 }
 
-aside > a {
-  display: block;
-  padding: 4px 16px;
-  text-decoration: none;
+aside>a {
+    display: block;
+    padding: 4px 16px;
+    text-decoration: none;
+}
+
+aside a:visited {
+    /*dont use visited color here*/
+    color: rgb(234, 232, 228);
 }
 
 main {
-  max-width: 800px;
-  margin: 0px auto;
-  margin-bottom: 40vh;
-  padding: 0rem 2rem;
+    max-width: 800px;
+    margin: 0px auto;
+    margin-bottom: 40vh;
+    padding: 0rem 2rem;
 }
 
 code::before {
-  display: block;
-  margin-top: -10px;
-  margin-bottom: 10px;
-  padding: 5px 0px;
-  width: fit-content;
-  color: rgb(179, 179, 179);
-  border-bottom: 1px solid rgb(54, 34, 34);
+    display: block;
+    margin-top: -10px;
+    margin-bottom: 10px;
+    padding: 5px 0px;
+    width: fit-content;
+    color: rgb(179, 179, 179);
+    border-bottom: 1px solid rgb(54, 34, 34);
 }
 
 table {
-  margin: 3em auto;
-  border-collapse: collapse;
+    margin: 3em auto;
+    border-collapse: collapse;
 }
+
 table,
 td,
 th {
-  padding: 8px 12px;
+    padding: 8px 12px;
 }
+
 th {
-  border-bottom: 2px solid rgb(169, 169, 169);
+    border-bottom: 2px solid rgb(169, 169, 169);
 }
 
 td {
-  border-bottom: 1px solid rgb(74, 74, 74);
+    border-bottom: 1px solid rgb(74, 74, 74);
 }
 
 blockquote {
-  margin: 3em 1em;
-  padding: 1em 1em;
-  background-color: rgb(31, 31, 31);
+    margin: 3em 1em;
+    padding: 1em 1em;
+    background-color: rgb(31, 31, 31);
 }
 
 .language-python::before {
-  content: "Python example";
+    content: "Python example";
 }
+
 .language-html::before {
-  content: "HTML example";
+    content: "HTML example";
 }
+
 .language-css::before {
-  content: "CSS example";
+    content: "CSS example";
 }
 
 .anchor1 {
-  font-size: large;
+    font-size: small;
+    font-weight: bold;
+    border-bottom: 1px solid #333;
+    margin-bottom: 2em;
 }
+
 .anchor2 {
-  font-size: medium;
+    font-size: small;
+    font-weight: bold;
+    margin-top: 1em;
+    padding-left: 8px;
+
 }
+
 .anchor3 {
-  font-size: smaller;
-  margin-left: 1rem;
+    font-size: smaller;
+    margin-left: 6px;
+    border-left: 1px solid #262;
+    padding: 0px 8px;
+    margin-top: 8px;
+}
+
+
+/* === CODE HIGHLIGHT ===*/
+pre.code-snippet {
+    border: 2px solid #223;
+    color: #eee;
+}
+
+pre.code-snippet>.co {
+    color: #789;
+    font-style: italic;
+}
+
+pre.code-snippet>.st {
+    color: #ab6;
+}
+
+pre.code-snippet>.br0 {
+    color: #696;
+}
+
+pre.code-snippet>.br1 {
+    color: #669;
+}
+
+pre.code-snippet>.br2 {
+    color: #966;
+}
+
+pre.code-snippet>.opbi {
+    color: #b94;
+}
+
+pre.code-snippet>.opas {
+    color: #b97;
+}
+
+pre.code-snippet>.sy {
+    color: #237;
+}
+
+pre.code-snippet>.pu {
+    color: #537;
+}
+
+pre.code-snippet>.nu {
+    color: #9fa;
 }

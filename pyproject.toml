@@ -8,4 +8,11 @@ dependencies = [
     "markdown-it-pyrs>=0.4.0",
     "pydantic>=2.11.7",
     "regex>=2025.7.34",
+    "rich>=15.0.0",
 ]
+
+[tool.ruff]
+line-length=120
+
+[tool.uv]
+package=true

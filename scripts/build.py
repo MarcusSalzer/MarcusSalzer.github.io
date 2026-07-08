@@ -1,9 +1,10 @@
+import sys
 from datetime import datetime
 from pathlib import Path
-import sys
 
 sys.path.append(".")
 
+from examples.highlight import html_process, v1
 from src.config import load_config
 from src.process import DocumentPost, render_template
 
@@ -11,11 +12,18 @@ OUT_DIR = Path("posts")
 OUT_DIR.mkdir(exist_ok=True)
 
 config = load_config()
-# content_files = list(config.content_dir.glob("**/*.md"))
 
+# content_files = list(config.content_dir.glob("**/*.md"))
 content_files = [config.content_dir / f"{fn}.md" for fn in config.posts]
 
 template = Path("templates/post.html").read_text("utf-8")
+
+
+def highlight_code(code_md: str) -> str:
+    tk, ta = v1.process(code_md)
+    code_html = html_process.format_html(tk, ta)
+    return code_html
+
 
 for f in content_files:
     m_time = datetime.fromtimestamp(f.stat().st_mtime)
@@ -24,7 +32,7 @@ for f in content_files:
     print(name, m_time)
     target_file = OUT_DIR / f"{name}.html"
 
-    post = DocumentPost(f)
+    post = DocumentPost(f, highlight_code)
 
     headings = post.headings()
     # for h in headings:
